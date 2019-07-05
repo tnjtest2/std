@@ -1,13 +1,164 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace ND1
+﻿namespace ND1
 {
-    class Program
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Text;
+
+    internal static class Program
     {
-        static void Main()
+        private static readonly Dictionary<int, string> DoubleNames = new Dictionary<int, string>
+        {
+            { 2, "dvidesimt" },
+        };
+
+        private static readonly Dictionary<int, string> GroupNames = new Dictionary<int, string>
+        {
+            { 1, "simtai" },
+            { 2, "tukstanciai" },
+            { 3, "milijonai" },
+            { 4, "milijardai" },
+        };
+
+        private static readonly Dictionary<int, string> Names = new Dictionary<int, string>
+        {
+            { 0, "" },
+            { 1, "vienas" },
+            { 2, "du" },
+            { 3, "tris" },
+            { 4, "keturi" },
+            { 5, "penki" },
+            { 6, "sesi" },
+            { 7, "septyni" },
+            { 8, "astuoni" },
+            { 9, "devyni" },
+            { 10, "desimt" },
+            { 11, "vienuolika" },
+            { 12, "dvylika" },
+            { 13, "trylika" },
+        };
+
+        public static bool IsNumber(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                return false;
+            }
+
+            text = text.TrimStart('-');
+
+            if (text.Length == 0)
+            {
+                return false;
+            }
+
+            return text.All(char.IsDigit);
+        }
+
+        private static string ChangeNumberToText(int number)
+        {
+            if (number == 0)
+            {
+                return "nulis";
+            }
+
+            var text = new StringBuilder();
+
+            if (number < 0)
+            {
+                text.Append("minus ");
+                number = Math.Abs(number);
+            }
+
+            var numberStr = number.ToString();
+            var groups = (int)Math.Ceiling(numberStr.Length / 3f);
+            var offset = numberStr.Length - (groups * 3);
+
+            //var split = number.ToString("N0").Split(CultureInfo.CurrentCulture.NumberFormat.NumberGroupSeparator);
+
+            for (var i = 0; i < groups; i++)
+            {
+                var groupNumber = groups - i;
+                var group = int.Parse(numberStr.Substring(Math.Max(0, (i * 3) + offset), i == 0 ? 3 + offset : 3));
+
+                var nr1 = group / 100;
+                var nr2 = group % 100 / 10;
+                var nr3 = group % 100 % 10;
+
+                if (nr1 > 0)
+                {
+                    text.Append(ParseSingleNumber(nr1, true));
+
+                    if (nr1 > 1)
+                    {
+                        text.Append(" ");
+                    }
+
+                    text.Append(GetGroupName(nr1, 1)).Append(" ");
+                }
+
+                if (nr2 > 0)
+                {
+                    text.Append(ParseDoubleNumber(nr2, nr3)).Append(" ");
+                }
+                else if (nr3 > 0)
+                {
+                    text.Append(ParseSingleNumber(nr3, i != groups));
+
+                    if (nr3 > 1)
+                    {
+                        text.Append(" ");
+                    }
+                }
+
+                if (groupNumber != 1 && group > 0)
+                {
+                    text.Append(GetGroupName(group, groupNumber)).Append(" ");
+                }
+            }
+
+            return text.ToString();
+        }
+
+        private static string GetGroupName(int nr, int gr)
+        {
+            try
+            {
+                var groupName = GroupNames[gr];
+
+                if (nr == 1)
+                {
+                    if (gr == 2)
+                    {
+                        // tukstanciai => tukstantis
+                        groupName = groupName.Substring(0, groupName.Length - 4) + "tis";
+                    }
+                    else
+                    {
+                        // simtai => simtas
+                        groupName = groupName.Substring(0, groupName.Length - 1) + "s";
+                    }
+                }
+                else if (nr > 10 || nr == 0)
+                {
+                    // tukstanciai => tukstanciu
+                    groupName = groupName.Substring(0, groupName.Length - 2) + "u";
+                }
+
+                return groupName;
+            }
+            catch
+            {
+                return "(unknown group)";
+            }
+        }
+
+        private static bool IsInRange(int x, int min, int max)
+        {
+            return x >= min && x <= max;
+        }
+
+        private static void Main()
         {
             var input = Console.ReadLine();
 
@@ -27,207 +178,60 @@ namespace ND1
 
             var textNumber = ChangeNumberToText(number);
 
+            Console.WriteLine(number.ToString("N0"));
             Console.WriteLine(textNumber);
+
             Console.ReadKey();
         }
 
-        private static Dictionary<int, string> Names = new Dictionary<int, string>
+        private static string ParseDoubleNumber(int number1, int number2)
         {
-            {0, "" },
-            {1, "vienas" },
-            {2, "du" },
-            {3, "tris" },
-            {4, "keturi" },
-            {5, "penki" },
-            {6, "sesi" },
-            {7, "septyni" },
-            {8, "astuoni" },
-            {9, "devyni" },
-            {10, "desimt" },
-            {11, "vienuolika" },
-            {12, "dvylika" },
-            {13, "trylika" },
-        };
-
-        private static Dictionary<int, string> Names1x = new Dictionary<int, string>
-        {
-            {2, "dvidesimt" },
-        };
-
-        private static Dictionary<int, string> Names1xx = new Dictionary<int, string>
-        {
-            {1, "simtas" },
-        };
-
-        private static string ParseSingle(int number, bool skipFirst)
-        {
-            if (skipFirst && number == 1)
+            try
             {
-                return string.Empty;
-            }
-
-            if (Names.TryGetValue(number, out var value))
-            {
-                return value;
-            }
-
-            return "unknown1";
-        }
-
-        private static Dictionary<int, string> groupNames = new Dictionary<int, string>
-        {
-            {1, "simtai" },
-            {2, "tukstanciai" },
-            {3, "milijonai" },
-        };
-
-        private static string GetGroupName(int nr, int group)
-        {
-            var name = Names[nr] + " " + groupNames[group];
-
-            if (nr == 1)
-            {
-                name.Replace("")
-            }
-
-            return "unknownGroup";
-        }
-
-        private static string ChangeNumberToText(int number)
-        {
-            if (number == 0)
-            {
-                return "nulis";
-            }
-
-            var name = new StringBuilder();
-
-            if (number < 0)
-            {
-                name.Append("minus ");
-                number = Math.Abs(number);
-            }
-
-          
-
-            var text = number.ToString();
-            var groups = Math.Ceiling(text.Length / 3f);
-
-            for (int i = 0; i < groups; i++)
-            {
-                var group = int.Parse(text.Substring(i * 3, Math.Min(3, text.Length - i * 3)));
-
-                var nr1 = group / 100;
-                var nr2 = group % 100 / 10;
-                var nr3 = group % 100 % 10;
-
-                name.Append(ParseSingle(nr1, true));
-                name.Append(GetGroupName(nr1, groups - i));
-
-            }
-          
-
-            //if (Names.TryGetValue(number, out var value))
-            //{
-            //    text.Append(value);
-            //}
-            //else
-            //{
-            //    if (number / 100 > 0)
-            //    {
-            //        var nr1 = number / 100;
-            //        var nr2 = number % 100 / 10;
-            //        var nr3 = number % 100 % 10;
-
-            //        if (Names1xx.TryGetValue(nr1, out var value2))
-            //        {
-            //            text.Append(value2);
-            //        }
-            //        else
-            //        {
-            //            text.Append(Names[nr1]).Append(" simtai");
-            //        }
-
-            //        text.Append(" ");
-
-            //        if (nr2 < 2)
-            //        {
-            //            text.Append(Names[nr3]).Append("olika");
-            //        }
-            //        else
-            //        {
-            //            if (Names1x.TryGetValue(nr2, out var value3))
-            //            {
-            //                text.Append(value3);
-            //            }
-            //            else
-            //            {
-            //                text.Append(Names[nr2]).Append("asdesimt");
-            //            }
-
-            //            text.Append(" ").Append(Names[nr3]);
-            //        }
-
-            //    }
-            //    else if (number / 10 > 0)
-            //    {
-            //        var nr1 = number / 10;
-            //        var nr2 = number % 10;
-
-            //        if (nr1 < 2)
-            //        {
-            //            text.Append(Names[nr2]).Append("olika");
-            //        }
-            //        else
-            //        {
-            //            if (Names1x.TryGetValue(nr1, out var value2))
-            //            {
-            //                text.Append(value2);
-            //            }
-            //            else
-            //            {
-            //                text.Append(Names[nr1]).Append("asdesimt");
-            //            }
-
-            //            text.Append(" ").Append(Names[nr2]);
-            //        }
-            //    }
-            //}
-
-            return name.ToString();
-        }
-
-      
-
-        private static bool IsInRange(int x, int min, int max)
-        {
-            if (x < min || x > max)
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        public static bool IsNumber(string text)
-        {
-            if (string.IsNullOrEmpty(text))
-            {
-                return false;
-            }
-
-            if (text[0] == '-')
-            {
-                if (text.Length < 2)
+                var single = (number1 * 10) + number2;
+                if (Names.TryGetValue(single, out var value))
                 {
-                    return false;
+                    return value;
                 }
 
-                return text.Skip(1).All(char.IsDigit);
+                if (number1 < 2)
+                {
+                    return Names[number2] + "olika";
+                }
+
+                string text;
+
+                if (DoubleNames.TryGetValue(number1, out value))
+                {
+                    text = value;
+                }
+                else
+                {
+                    text = Names[number1] + "asdesimt";
+                }
+
+                return text + " " + ParseSingleNumber(number2, false);
             }
-            else
+            catch
             {
-                return text.All(char.IsDigit);
+                return "(unknown double value)";
+            }
+        }
+
+        private static string ParseSingleNumber(int number, bool skipFirst)
+        {
+            try
+            {
+                if (skipFirst && number == 1)
+                {
+                    return string.Empty;
+                }
+
+                return Names[number];
+            }
+            catch
+            {
+                return "(unknown single value)";
             }
         }
     }
