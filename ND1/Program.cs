@@ -55,7 +55,7 @@
             return text.All(char.IsDigit);
         }
 
-        private static string ChangeNumberToText(int number)
+        private static string ChangeNumberToText(long number)
         {
             if (number == 0)
             {
@@ -94,7 +94,7 @@
                         text.Append(" ");
                     }
 
-                    text.Append(GetGroupName(nr1, 1)).Append(" ");
+                    text.Append(GetGroupName(0, nr1, 1)).Append(" ");
                 }
 
                 if (nr2 > 0)
@@ -103,30 +103,25 @@
                 }
                 else if (nr3 > 0)
                 {
-                    text.Append(ParseSingleNumber(nr3, i != groups));
-
-                    if (nr3 > 1)
-                    {
-                        text.Append(" ");
-                    }
+                    text.Append(ParseSingleNumber(nr3, nr1 != 0 && nr2 != 0)).Append(" ");
                 }
 
                 if (groupNumber != 1 && group > 0)
                 {
-                    text.Append(GetGroupName(group, groupNumber)).Append(" ");
+                    text.Append(GetGroupName(nr2, nr3, groupNumber)).Append(" ");
                 }
             }
 
             return text.ToString();
         }
 
-        private static string GetGroupName(int nr, int gr)
+        private static string GetGroupName(int left, int right, int gr)
         {
             try
             {
                 var groupName = GroupNames[gr];
 
-                if (nr == 1)
+                if (right == 1)
                 {
                     if (gr == 2)
                     {
@@ -139,7 +134,7 @@
                         groupName = groupName.Substring(0, groupName.Length - 1) + "s";
                     }
                 }
-                else if (nr > 10 || nr == 0)
+                else if (right == 0 || left == 1)
                 {
                     // tukstanciai => tukstanciu
                     groupName = groupName.Substring(0, groupName.Length - 2) + "u";
@@ -153,7 +148,7 @@
             }
         }
 
-        private static bool IsInRange(int x, int min, int max)
+        private static bool IsInRange(long x, int min, int max)
         {
             return x >= min && x <= max;
         }
@@ -168,7 +163,7 @@
                 return;
             }
 
-            var number = int.Parse(input);
+            var number = long.Parse(input);
 
             if (!IsInRange(number, -9, 9))
             {
