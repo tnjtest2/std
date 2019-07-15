@@ -67,15 +67,25 @@
 
         private static int[] ToArray(int number)
         {
-            var stack = new Stack<int>();
+            //var stack = new Stack<int>();
 
-            while (number > 0)
+            //while (number > 0)
+            //{
+            //    stack.Push(number % 10);
+            //    number /= 10;
+            //}
+
+            //return stack.ToArray();
+
+            var array = new int[number.ToString().Length];
+
+            for (var i = array.Length - 1; i >= 0; i--)
             {
-                stack.Push(number % 10);
+                array[i] = number % 10;
                 number /= 10;
             }
 
-            return stack.ToArray();
+            return array;
         }
 
         private static bool IsUnique(int[] array)
